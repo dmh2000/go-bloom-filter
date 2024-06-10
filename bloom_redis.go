@@ -37,7 +37,7 @@ func (br *BloomRedis) AddString(id string) bool {
 // return false if the byte slice is not in the filter
 func (br *BloomRedis) Exists(id []byte) bool {
 	ctx := context.Background()
-	cmd := br.client.BFExists(ctx, "bf_key", id)
+	cmd := br.client.BFExists(ctx, br.key, id)
 	exists, err := cmd.Result()
 	if err != nil {
 		panic(err)
@@ -53,7 +53,7 @@ func (br *BloomRedis) ExistsString(id string) bool {
 	return br.Add([]byte(id))
 }
 
-func NewBloomFilterRedis(key string, rate float64, cap int64) (br *BloomRedis, err error) {
+func NewBloomFilterRedis(key string, cap int64, rate float64) (br *BloomRedis, err error) {
 
 	ctx := context.Background()
 	client := redis.NewClient(

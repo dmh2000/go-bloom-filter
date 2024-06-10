@@ -27,14 +27,18 @@ wants at least K = 3 hash functions, but you can use more if you want.
 
 // use map of empty structs to store the hashes because it uses less memory than bool's
 type BloomFilter32 struct {
-	set map[uint32]struct{}
-	mtx sync.Mutex
+	rate float64
+	cap  int
+	set  map[uint32]struct{}
+	mtx  sync.Mutex
 }
 
-func NewBloomFilter32() *BloomFilter32 {
+func NewBloomFilter32(cap int, rate float64) *BloomFilter32 {
 	return &BloomFilter32{
-		set: make(map[uint32]struct{}),
-		mtx: sync.Mutex{},
+		rate: rate,
+		cap:  cap,
+		set:  make(map[uint32]struct{}, cap),
+		mtx:  sync.Mutex{},
 	}
 }
 
