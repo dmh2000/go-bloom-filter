@@ -8,13 +8,11 @@ import (
 // Verify Add returns false when adding a new byte slice
 func AddNewByteSlice(t *testing.T, bf BloomFilter) {
 
-	var collisions = 0
 	input := []byte("test data 2")
 	result := bf.Add(input)
 	if result == MAYBE_IN_FILTER {
 		t.Errorf("Expected Add to return false for added new, got %v", result)
 	}
-	t.Log("collisions:", collisions)
 
 	// check that is now found in the bitmask
 	result = bf.Exists(input)
@@ -41,7 +39,6 @@ func AddString(t *testing.T, bf BloomFilter) {
 	if result == MAYBE_IN_FILTER {
 		collisions++
 	}
-	t.Log("collisions:", collisions)
 }
 
 // Verify ExistsString returns true when adding an existing string
@@ -62,7 +59,6 @@ func AddEmptyByteSlice(t *testing.T, bf BloomFilter) {
 	if result == MAYBE_IN_FILTER {
 		collisions++
 	}
-	t.Log("collisions:", collisions)
 }
 
 func GenerateInstanceID(t *testing.T, bf BloomFilter) {
@@ -83,8 +79,6 @@ func GenerateInstanceID(t *testing.T, bf BloomFilter) {
 			t.Errorf("Expected ExistsString to return true for existing, got %v", result)
 		}
 	}
-	t.Log("collisions:", collisions)
-
 }
 
 func GenerateInstanceID0001(b *testing.B, bf BloomFilter) {
@@ -97,7 +91,6 @@ func GenerateInstanceID0001(b *testing.B, bf BloomFilter) {
 			collisions++
 		}
 	}
-	b.Log("collisions:", collisions)
 }
 
 func TestBloomFilter32(t *testing.T) {
@@ -138,11 +131,25 @@ func TestBloomFilterRedis(t *testing.T) {
 	GenerateInstanceID(t, bf)
 }
 
+func TestBloomFilterChatGPT(t *testing.T) {
+
+	key := generateInstanceID(8)
+	t.Log(key)
+	bf := NewBloomFilterChatGPT(10*1024*1024, .001)
+	AddNewByteSlice(t, bf)
+	ExistsByteSlice(t, bf)
+	AddString(t, bf)
+	ExistsString(t, bf)
+	AddEmptyByteSlice(t, bf)
+	GenerateInstanceID(t, bf)
+}
+
 func TestBloomFilter(t *testing.T) {
 	key := generateInstanceID(8)
 	b32 := NewBloomFilter32(10*1024*1024, .001)
 	bits := NewBloomFilterBits(10*1024*1024, .001)
 	redis, err := NewBloomFilterRedis(key, 10*1024*1024, .001)
+	chatgpt := NewBloomFilterChatGPT(10*1024*1024, .001)
 	if err != nil {
 		t.Error(err)
 	}
@@ -161,6 +168,10 @@ func TestBloomFilter(t *testing.T) {
 		{
 			"redis",
 			redis,
+		},
+		{
+			"chatgpt",
+			chatgpt,
 		},
 	}
 
@@ -186,7 +197,6 @@ func RunGenerateInstanceID0001(b *testing.B, bf BloomFilter) {
 			collisions++
 		}
 	}
-	b.Log("collisions:", collisions)
 }
 
 func BenchmarkBloomFilter(b *testing.B) {
@@ -194,6 +204,7 @@ func BenchmarkBloomFilter(b *testing.B) {
 	b32 := NewBloomFilter32(10*1024*1024, .001)
 	bits := NewBloomFilterBits(10*1024*1024, .001)
 	redis, err := NewBloomFilterRedis(key, 10*1024*1024, .001)
+	chatgpt := NewBloomFilterChatGPT(10*1024*1024, .001)
 	if err != nil {
 		b.Error(err)
 	}
@@ -212,6 +223,10 @@ func BenchmarkBloomFilter(b *testing.B) {
 		{
 			"redis",
 			redis,
+		},
+		{
+			"chatgpt",
+			chatgpt,
 		},
 	}
 
